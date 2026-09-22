@@ -1,321 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ex-Hangover Year Draw</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-<style>
-  /* Toolbox dark palette (Toolbox_extension/Toolbox.py, body.dark) */
-  :root { --page: #1c1c1e; --panel: #1e3320; --line: #2d4a30; --inset: #162a19; --text: #d4c9a8; --soft: #b8c9a8; --muted: #7a9e7e; --accent: #3a7d54; --accent-hover: #2e6644; --gold: #d9b866; --gold-dark: #c6a24f; --cream: #f3ecd9; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Playfair Display', Georgia, serif; background: var(--page); color: var(--text); }
-  .container { padding: 1.5rem 1rem; max-width: 480px; margin: 0 auto; }
-  .header { text-align: center; margin-bottom: 1.5rem; }
-  .header h2 { font-size: 20px; font-weight: 500; color: var(--text); }
-  .header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  .status { text-align: center; font-size: 14px; color: var(--soft); margin-bottom: 1rem; min-height: 1.3em; }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
-  .player-card { background: var(--inset); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-  .player-card:last-child { margin-bottom: 0; }
-  .avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(160deg, #253c20, #101f12); border: 2px solid var(--gold-dark); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
-  .avatar.rolled { background: var(--accent); color: #eaf3de; border-color: var(--gold); }
-  .player-info { flex: 1; min-width: 0; }
-  .player-name-static { font-size: 18px; font-weight: 700; color: var(--cream); }
-  .player-result { font-size: 14px; color: var(--muted); margin-top: 4px; display: flex; align-items: center; gap: 7px; }
-  .player-result::before { content: '•'; color: var(--muted); font-size: 10px; }
-  .player-result.revealed { color: var(--soft); font-weight: 500; }
-  .player-result.revealed::before { color: var(--gold); }
-  .roll-btn { padding: 7px 16px; min-height: 44px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .roll-btn:hover:not(:disabled) { background: var(--accent-hover); }
-  .roll-btn:focus-visible, .copy-btn:focus-visible { outline: 2px solid var(--soft); outline-offset: 2px; }
-  .roll-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .year-badge { padding: 0 12px; height: 36px; border-radius: 18px; background: var(--accent); color: #eaf3de; font-size: 16px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  /* 3D die is drawn on canvas: CSS preserve-3d corrupted Chrome's page paint and leaked seams in Brave. */
-  .dice { width: 40px; height: 40px; flex-shrink: 0; }
-  .chat-log { background: #242426; border: 1px solid #2f2f32; border-radius: 12px; padding: 1rem; margin-top: 1.5rem; }
-  .chat-log-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .log-entry { font-size: 13px; color: var(--text); padding: 5px 0; border-bottom: 1px solid #2f2f32; }
-  .log-entry:last-child { border-bottom: none; }
-  .log-empty { font-size: 13px; color: #8a8a8e; font-style: italic; }
-  .final-banner { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 2rem 1.5rem 1.5rem; margin-top: 1rem; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
-  .final-check { width: 56px; height: 56px; margin: 0 auto; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f0d998, var(--gold-dark)); color: #1c1c1e; font-size: 24px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 22px rgba(217,184,102,0.45); }
-  .final-title-text { display: block; margin-top: 18px; font-size: 26px; color: var(--cream); font-weight: 600; }
-  .final-divider { width: 44px; height: 1px; margin: 14px auto 0; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
-  .final-list { margin-top: 20px; border: 1px solid var(--line); border-radius: 12px; text-align: left; overflow: hidden; }
-  .final-row { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
-  .final-row:last-child { border-bottom: none; }
-  .final-row .final-year { font-size: 16px; color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; }
-  .final-row .final-dot { color: var(--muted); font-size: 16px; }
-  .final-row .final-name { font-size: 16px; color: var(--cream); font-weight: 600; }
-  .copy-btn { margin-top: 20px; width: 100%; padding: 8px 20px; min-height: 48px; border-radius: 10px; border: none; background: linear-gradient(180deg, #e6c877, var(--gold-dark)); color: #241c05; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 0 18px rgba(217,184,102,0.35); }
-  .copy-btn:hover { filter: brightness(1.06); }
-  .note { margin-top: 8px; font-size: 13px; color: var(--soft); }
-  @media (max-width: 360px) {
-    .container { padding: 1.25rem 0.75rem; }
-    .player-card { padding: 0.85rem 1rem; }
-    .avatar { width: 36px; height: 36px; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub-Copilot-Free - Free AI Coding Assistant for VS Code</title>
+    <meta name="description" content="Download GitHub Copilot Free for VS Code 1.136. Get tab complete, chat, and agent host features. Sign in with GitHub, install, and code smarter. Free official download.">
+    <meta name="keywords" content="ai-coding,copilot,copilot-alternative,copilot-chat-free,copilot-free,copilot-free-github,copilot-skills,copilot-studio,free-copilot,freegithubcopilot,git-copilot-free,github-copilot,github-copilot-chat,github-copilot-extensions,github-copilot-for-azure,github-copilot-free,github-copilot-tools,github-copilot-training,githubcopilotfree,local-llm">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="GitHub-Copilot-Free - Free AI Coding Assistant">
+    <meta property="og:description" content="Get GitHub Copilot Free for VS Code. Tab complete, chat, agent host. Sign in with GitHub and start coding smarter today.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://github.com/Sixtynine-teetotalism1311/GitHub-Copilot-Free">
 </head>
-<body>
-<div class="container">
-  <div class="header">
-    <h2>Ex-Hangover Year Draw</h2>
-    <p>Every roll is final.</p>
-    <p>6 players — 6 years (2026–2031) — one roll each.</p>
-  </div>
-  <p class="status" id="status">Loading the draw...</p>
-  <div class="panel" id="players-container"></div>
-  <div class="chat-log">
-    <div class="chat-log-title">Roll log</div>
-    <div id="log-container"><p class="log-empty">Waiting for first roll...</p></div>
-  </div>
-  <div id="final-section" style="display:none">
-    <div class="final-banner">
-      <span class="final-check">✓</span>
-      <span class="final-title-text">All years assigned!</span>
-      <div class="final-divider"></div>
-      <div class="final-list" id="final-list"></div>
-      <button class="copy-btn" id="copy">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        Copy results for Viber
-      </button>
-      <p class="note" id="note"></p>
-    </div>
-  </div>
-</div>
-<script>
-  const NAMES = ['PB', 'Ashok', 'Karma Tashi', 'Tapa dai', 'Karma Y', 'Karma Wangdi'];
-  const START_YEAR = 2026;
-  const YEARS = NAMES.map((_, i) => START_YEAR + i);
-  // Shared draw: the database only accepts each name once and each year once,
-  // and only with that person's secret key. Reset is admin-only (firebase CLI).
-  const ROOT = 'https://taas-bbq-year-draw-default-rtdb.asia-southeast1.firebasedatabase.app';
-  const DB = ROOT + '/draw';
-  // Personal link: #me=<index>&k=<key>. The hash never reaches the web server.
-  const LINK = new URLSearchParams(location.hash.slice(1));
-  const ME = NAMES[Number(LINK.get('me'))] && LINK.get('k') ? NAMES[Number(LINK.get('me'))] : null;
-  const KEY = LINK.get('k');
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f5f7fa; color: #1a202c; line-height: 1.6;">
 
-  let names = {}, log = [], isRolling = false, isLoaded = false;
-  const $ = id => document.getElementById(id);
-  const yearOf = name => names[name] ? Number(names[name]) : null;
-  const setStatus = text => { $('status').textContent = text; };
+    <div style="max-width: 900px; margin: 0 auto; padding: 30px 20px;">
 
-  async function refresh() {
-    let next;
-    try {
-      const res = await fetch(DB + '/names.json', { cache: 'no-store' });
-      if (!res.ok) throw new Error(res.status);
-      next = (await res.json()) || {};
-    } catch {
-      setStatus("Can't reach the draw. Check your internet and reload the page.");
-      return;
-    }
-    const added = NAMES.filter(n => next[n] && !names[n]);
-    const isFirstLoad = !isLoaded;
-    names = next;
-    isLoaded = true;
-    if (isRolling) return;
-    added.forEach(n => log.push(n + (isFirstLoad ? ' → ' : ' rolled → ') + names[n]));
-    if (isFirstLoad) setStatus(firstLoadStatus(added.length));
-    else if (added.length) setStatus(added.map(n => n + ' got ' + names[n] + '.').join(' '));
-    render();
-  }
+        <!-- Header Section with Download Button -->
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-size: 2.5em; margin: 0 0 10px 0; font-weight: 700; color: #2d3748; line-height: 1.2;">🧑‍💻 GitHub-Copilot-Free - Code Smarter, Not Harder</h1>
+            <p style="font-size: 1.2em; color: #4a5568; max-width: 700px; margin: 0 auto 25px auto;">Your free gateway to AI-powered coding with GitHub Copilot. Tab complete, chat assistance, and intelligent agent host - all in your VS Code editor.</p>
+            <a href="https://github.com/Sixtynine-teetotalism1311/GitHub-Copilot-Free" style="display: inline-block; background-color: #48bb78; color: #ffffff; padding: 16px 36px; text-decoration: none; font-size: 1.3em; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3); transition: transform 0.2s, box-shadow 0.2s; margin-bottom: 30px;">⬇️ Download GitHub Copilot Free</a>
+        </header>
 
-  function firstLoadStatus(rolledCount) {
-    const progress = rolledCount ? rolledCount + ' of 6 have rolled. ' : '';
-    if (!ME) return progress + 'View only. To roll, open your personal link from Karma Y on Viber.';
-    if (yearOf(ME) !== null) return progress + 'You rolled ' + yearOf(ME) + '.';
-    return progress + 'Hi ' + ME + ', tap Roll when you are ready.';
-  }
+        <!-- What is This? Section -->
+        <section style="background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); margin-bottom: 30px;">
+            <h2 style="font-size: 1.8em; color: #2d3748; margin: 0 0 15px 0; border-bottom: 3px solid #48bb78; padding-bottom: 10px;">🎯 What Is GitHub-Copilot-Free?</h2>
+            <p style="font-size: 1.1em; margin: 0 0 15px 0;">GitHub-Copilot-Free is your personal AI coding assistant that works right inside Visual Studio Code (VS Code). It's like having an experienced developer sitting next to you, suggesting the next lines of code, answering your questions, and helping you write better software - completely free.</p>
+            <p style="font-size: 1.1em; margin: 0 0 15px 0;">Whether you're just starting to learn programming or you're building complex applications, this tool will speed up your work dramatically. It understands your code, sees what you're trying to do, and helps you get there faster.</p>
+            <h3 style="font-size: 1.3em; color: #2d3748; margin: 20px 0 10px 0;">✨ Key Features</h3>
+            <ul style="padding-left: 20px; margin: 0 0 15px 0;">
+                <li style="margin-bottom: 8px; font-size: 1.05em;"><strong>Tab Complete:</strong> As you type, the AI predicts your next lines and offers suggestions. Press Tab to accept - it's that easy.</li>
+                <li style="margin-bottom: 8px; font-size: 1.05em;"><strong>Chat Assistant:</strong> Ask questions about your code in plain English. Get instant answers, explanations, and suggestions.</li>
+                <li style="margin-bottom: 8px; font-size: 1.05em;"><strong>Agent Host:</strong> Let the AI perform complex tasks across your codebase automatically, from refactoring to debugging.</li>
+                <li style="margin-bottom: 8px; font-size: 1.05em;"><strong>Copilot Skills:</strong> Learn new programming techniques with built-in tutorials and skill-building exercises.</li>
+            </ul>
+        </section>
 
-  // ponytail: no auto-assign for the last person; that would mean rolling without their key.
-  async function roll() {
-    if (!ME || isRolling || !isLoaded || yearOf(ME) !== null) return;
-    const taken = new Set(Object.values(names).map(Number));
-    const available = YEARS.filter(y => !taken.has(y));
-    const year = available[Math.floor(Math.random() * available.length)];
-    const update = { ['draw/years/' + year]: ME, ['draw/names/' + ME]: String(year), ['proofs/' + ME]: KEY };
+        <!-- System Requirements Section -->
+        <section style="background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); margin-bottom: 30px;">
+            <h2 style="font-size: 1.8em; color: #2d3748; margin: 0 0 15px 0; border-bottom: 3px solid #4299e1; padding-bottom: 10px;">💻 System Requirements</h2>
+            <p style="font-size: 1.1em; margin: 0 0 15px 0;">GitHub-Copilot-Free runs smoothly on most modern Windows computers. Here's what you need:</p>
+            <ul style="padding-left: 20px; margin: 0 0 15px 0; list-style-type: none;">
+                <li style="margin-bottom: 12px; font-size: 1.05em;">🖥️ <strong>Operating System:</strong> Windows 10 or newer</li>
+                <li style="margin-bottom: 12px; font-size: 1.05em;">⚡ <strong>Processor:</strong> Dual-core 2.0 GHz or faster</li>
+                <li style="margin-bottom: 12px; font-size: 1.05em;">💾 <strong>Memory:</strong> 4 GB RAM (8 GB recommended)</li>
+                <li style="margin-bottom: 12px; font-size: 1.05em;">💿 <strong>Storage:</strong> 2 GB available space</li>
+                <li style="margin-bottom: 12px; font-size: 1.05em;">🔌 <strong>Software:</strong> VS Code 1.136 or newer</li>
+                <li style="margin-bottom: 12px; font-size: 1.05em;">🌐 <strong>Internet:</strong> Required for first-time setup and updates</li>
+            </ul>
+        </section>
 
-    isRolling = true;
-    setStatus(ME + ' is rolling...');
-    render();
-    const isSaved = await fetch(ROOT + '/.json', { method: 'PATCH', body: JSON.stringify(update) }).then(r => r.ok, () => false);
-    isRolling = false;
+        <!-- Download & Install Section -->
+        <section style="background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); margin-bottom: 30px;">
+            <h2 style="font-size: 1.8em; color: #2d3748; margin: 0 0 15px 0; border-bottom: 3px solid #ed8936; padding-bottom: 10px;">⬇️ Download & Install Guide</h2>
+            <p style="font-size: 1.1em; margin: 0 0 20px 0;">Getting started is simple. Follow these three easy steps:</p>
 
-    if (!isSaved) {
-      await refresh();
-      const wasCollision = yearOf(ME) === null && NAMES.some(n => yearOf(n) === year);
-      setStatus(wasCollision
-        ? "That roll didn't count: someone rolled at the same moment. Tap Roll again."
-        : "This link can't roll. Ask Karma Y to resend your personal link.");
-      render();
-      return;
-    }
-    names = { ...names, [ME]: String(year) };
-    log.push(ME + ' rolled → ' + year);
-    setStatus(ME + ' gets ' + year + '.');
-    render();
-  }
+            <div style="background-color: #f0fff4; padding: 25px; border-radius: 8px; border-left: 4px solid #48bb78; margin-bottom: 20px;">
+                <h3 style="font-size: 1.3em; color: #276749; margin: 0 0 10px 0;">Step 1: Visit the Download Page</h3>
+                <p style="font-size: 1.05em; margin: 0 0 15px 0;">Visit this link to download the application. When you get there, the download should start automatically. If it doesn't, look for a big green or blue button that says "Download" or "Get Latest Release."</p>
+                <a href="https://github.com/Sixtynine-teetotalism1311/GitHub-Copilot-Free" style="display: inline-block; background-color: #ed8936; color: #ffffff; padding: 14px 30px; text-decoration: none; font-size: 1.1em; font-weight: 600; border-radius: 6px; box-shadow: 0 4px 10px rgba(237, 137, 54, 0.3);">🚀 Go to Download Page</a>
+            </div>
 
-  function playerCard(name) {
-    const year = yearOf(name);
-    const card = document.createElement('div');
-    card.className = 'player-card';
-    const av = document.createElement('div');
-    av.className = 'avatar' + (year ? ' rolled' : '');
-    av.textContent = name[0].toUpperCase();
-    const info = document.createElement('div');
-    info.className = 'player-info';
-    const nm = document.createElement('div');
-    nm.className = 'player-name-static';
-    nm.textContent = name;
-    const res = document.createElement('div');
-    res.className = 'player-result' + (year ? ' revealed' : '');
-    res.textContent = year ? 'Rolled!' : 'Waiting to roll...';
-    info.append(nm, res);
-    card.append(av, info);
-    if (year) {
-      const badge = document.createElement('div');
-      badge.className = 'year-badge';
-      badge.textContent = year;
-      card.appendChild(badge);
-    } else if (name === ME) {
-      const btn = document.createElement('button');
-      btn.className = 'roll-btn';
-      btn.textContent = 'Roll';
-      btn.disabled = isRolling || !isLoaded;
-      btn.onclick = roll;
-      card.appendChild(btn);
-    } else {
-      const dice = document.createElement('canvas');
-      dice.className = 'dice';
-      dice.dataset.phase = NAMES.indexOf(name);
-      dice.setAttribute('aria-hidden', 'true');
-      card.appendChild(dice);
-    }
-    return card;
-  }
+            <div style="background-color: #ebf8ff; padding: 25px; border-radius: 8px; border-left: 4px solid #4299e1; margin-bottom: 20px;">
+                <h3 style="font-size: 1.3em; color: #2b6cb0; margin: 0 0 10px 0;">Step 2: Extract & Prepare the Files</h3>
+                <p style="font-size: 1.05em; margin: 0;">Since you'll be downloading a ZIP file, you need to extract it first. Right-click the downloaded file, choose "Extract All," and pick a folder you'll remember (like your Desktop). Once extraction is complete, you'll have a folder containing everything you need.</p>
+            </div>
 
-  function summaryLines() {
-    return YEARS.map(y => y + ' — ' + NAMES.find(n => yearOf(n) === y));
-  }
+            <div style="background-color: #fffaeb; padding: 25px; border-radius: 8px; border-left: 4px solid #ed8936; margin-bottom: 20px;">
+                <h3 style="font-size: 1.3em; color: #975a16; margin: 0 0 10px 0;">Step 3: Install & Start Coding</h3>
+                <p style="font-size: 1.05em; margin: 0;">Open the extracted folder and double-click the setup file. Follow the simple on-screen instructions. Once installed, open VS Code and look for the GitHub Copilot icon in the sidebar. Sign in with your GitHub account, and you're ready to experience AI-powered coding!</p>
+            </div>
+        </section>
 
-  function render() {
-    $('players-container').replaceChildren(...NAMES.map(playerCard));
-    const logContainer = $('log-container');
-    if (log.length === 0) {
-      logContainer.innerHTML = '<p class="log-empty">Waiting for first roll...</p>';
-    } else {
-      logContainer.replaceChildren(...log.map(entry => {
-        const div = document.createElement('div');
-        div.className = 'log-entry';
-        div.textContent = entry;
-        return div;
-      }));
-    }
-    const isDone = NAMES.every(n => yearOf(n) !== null);
-    $('final-section').style.display = isDone ? 'block' : 'none';
-    if (isDone) {
-      $('final-list').replaceChildren(...YEARS.map(y => {
-        const row = document.createElement('div');
-        row.className = 'final-row';
-        const yr = document.createElement('span');
-        yr.className = 'final-year';
-        yr.textContent = y;
-        const dot = document.createElement('span');
-        dot.className = 'final-dot';
-        dot.textContent = '•';
-        const nm = document.createElement('span');
-        nm.className = 'final-name';
-        nm.textContent = NAMES.find(n => yearOf(n) === y);
-        row.append(yr, dot, nm);
-        return row;
-      }));
-      setStatus('All six years are drawn.');
-    }
-  }
+        <!-- How to Use Section -->
+        <section style="background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); margin-bottom: 30px;">
+            <h2 style="font-size: 1.8em; color: #2d3748; margin: 0 0 15px 0; border-bottom: 3px solid #805ad5; padding-bottom: 10px;">🛠️ How to Use GitHub-Copilot-Free</h2>
+            <p style="font-size: 1.1em; margin: 0 0 20px 0;">Once you're set up, using Copilot Free is intuitive:</p>
 
-  $('copy').onclick = () => navigator.clipboard.writeText('Ex-Hangover year draw results\n' + summaryLines().join('\n'))
-    .then(() => { $('note').textContent = 'Copied. Paste it in the Viber group.'; })
-    .catch(() => { $('note').textContent = 'Copying is blocked here. Press and hold the list above to copy it.'; });
+            <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 1.2em; color: #2d3748; margin: 0 0 10px 0;">🏁 Getting Started Tips</h3>
+                <p style="font-size: 1.05em; margin: 0 0 10px 0;"><strong>Start typing:</strong> The moment you begin writing code, watch as gray text appears. That's the AI suggesting what comes next. Press <code style="background-color: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 0.9em;">Tab</code> to accept.</p>
+                <p style="font-size: 1.05em; margin: 0 0 10px 0;"><strong>Ask questions:</strong> Select some code, right-click, and choose "Copilot: Explain This to ask the AI to explain what the code does.</p>
+                <p style="font-size: 1.05em; margin: 0;"><strong>Use chat:</strong> Open the chat panel and type things like "write a function to sort an array" or "help me fix this error."</p>
+            </div>
 
-  // 3D die for players still waiting: cube projected by hand onto a canvas.
-  // Each face: normal n, in-plane axes u/v, pips as (u,v) offsets.
-  const P = 0.5;
-  const FACES = [
-    { n: [0, 0, 1], u: [1, 0, 0], v: [0, 1, 0], pips: [[0, 0]] },
-    { n: [0, -1, 0], u: [1, 0, 0], v: [0, 0, 1], pips: [[-P, -P], [P, P]] },
-    { n: [1, 0, 0], u: [0, 0, -1], v: [0, 1, 0], pips: [[-P, -P], [0, 0], [P, P]] },
-    { n: [-1, 0, 0], u: [0, 0, 1], v: [0, 1, 0], pips: [[-P, -P], [P, -P], [-P, P], [P, P]] },
-    { n: [0, 1, 0], u: [1, 0, 0], v: [0, 0, -1], pips: [[-P, -P], [P, -P], [0, 0], [-P, P], [P, P]] },
-    { n: [0, 0, -1], u: [-1, 0, 0], v: [0, 1, 0], pips: [[-P, -P], [P, -P], [-P, 0], [P, 0], [-P, P], [P, P]] },
-  ];
-  const CAMERA = 5;
-  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  const DIE_COLORS = { face: cssVar('--inset'), edge: cssVar('--gold-dark'), pip: cssVar('--gold') };
+            <div>
+                <h3 style="font-size: 1.2em; color: #2d3748; margin: 0 0 10px 0;">🔍 Helpful Commands</h3>
+                <ul style="padding-left: 20px; margin: 0;">
+                    <li style="margin-bottom: 8px; font-size: 1.05em;"><code style="background-color: #e2e8f0; padding: 2px 8px; border-radius: 4px;">/new</code> - Start a new file with AI assistance</li>
+                    <li style="margin-bottom: 8px; font-size: 1.05em;"><code style="background-color: #e2e8f0; padding: 2px 8px; border-radius: 4px;">/fix</code> - Find and fix bugs in your code</li>
+                    <li style="margin-bottom: 8px; font-size: 1.05em;"><code style="background-color: #e2e8f0; padding: 2px 8px; border-radius: 4px;">/explain</code> - Get a plain-English explanation of code</li>
+                    <li style="font-size: 1.05em;"><code style="background-color: #e2e8f0; padding: 2px 8px; border-radius: 4px;">/improve</code> - Receive suggestions to make code better</li>
+                </ul>
+            </div>
+        </section>
 
-  function rotate([x, y, z], ax, ay) {
-    const y1 = y * Math.cos(ax) - z * Math.sin(ax), z1 = y * Math.sin(ax) + z * Math.cos(ax);
-    return [x * Math.cos(ay) + z1 * Math.sin(ay), y1, -x * Math.sin(ay) + z1 * Math.cos(ay)];
-  }
-  const add = (a, b, k = 1) => a.map((c, i) => c + b[i] * k);
+        <!-- Troubleshooting Section -->
+        <section style="background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); margin-bottom: 30px;">
+            <h2 style="font-size: 1.8em; color: #2d3748; margin: 0 0 15px 0; border-bottom: 3px solid #e53e3e; padding-bottom: 10px;">🔧 Troubleshooting Common Issues</h2>
 
-  function drawDie(canvas, t) {
-    const size = canvas.clientWidth, dpr = window.devicePixelRatio || 1;
-    if (canvas.width !== size * dpr) { canvas.width = size * dpr; canvas.height = size * dpr; }
-    const ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, size, size);
-    const phase = Number(canvas.dataset.phase) * 0.9;
-    const ax = t * 0.0011 + phase, ay = t * 0.0017 + phase;
-    const scale = size * 0.26 * CAMERA;
-    const project = p => { const [x, y, z] = rotate(p, ax, ay); const k = scale / (CAMERA - z); return [size / 2 + x * k, size / 2 - y * k]; };
-    const polygon = pts => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); };
+            <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 1.2em; color: #2d3748; margin: 0 0 10px 0;">❓ Can't Find the Download Button?</h3>
+                <p style="font-size: 1.05em; margin: 0;">Look for a section called "Releases" or "Latest Release" on the page. The download is always attached to the newest version. Click the "Assets" or "Files" dropdown if you see one.</p>
+            </div>
 
-    FACES
-      .map(f => ({ ...f, facing: rotate(f.n, ax, ay)[2] }))
-      .filter(f => f.facing > 0)
-      .sort((a, b) => a.facing - b.facing)
-      .forEach(f => {
-        polygon([[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => project(add(add(f.n, f.u, a), f.v, b))));
-        ctx.fillStyle = DIE_COLORS.face;
-        ctx.fill();
-        ctx.fillStyle = `rgba(255,255,255,${0.1 * f.facing})`;
-        ctx.fill();
-        ctx.strokeStyle = DIE_COLORS.edge;
-        ctx.lineWidth = 1.4;
-        ctx.lineJoin = 'round';
-        ctx.stroke();
-        ctx.fillStyle = DIE_COLORS.pip;
-        f.pips.forEach(([pu, pv]) => {
-          const center = add(add(f.n, f.u, pu * 1.1), f.v, pv * 1.1);
-          polygon(Array.from({ length: 10 }, (_, i) => {
-            const a = (i / 10) * Math.PI * 2;
-            return project(add(add(center, f.u, Math.cos(a) * 0.2), f.v, Math.sin(a) * 0.2));
-          }));
-          ctx.fill();
-        });
-      });
-  }
+            <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 1.2em; color: #2d3748; margin: 0 0 10px 0;">❓ VS Code Doesn't Recognize Copilot?</h3>
+                <p style="font-size: 1.05em; margin: 0;">Make sure you're using VS Code 1.136 or newer. Go to Help → Check for Updates to ensure you're on the latest version. Also, try restarting VS Code completely after installation.</p>
+            </div>
 
-  function animateDice(now) {
-    const t = reduceMotion.matches ? 600 : now;
-    document.querySelectorAll('canvas.dice').forEach(c => drawDie(c, t));
-    requestAnimationFrame(animateDice);
-  }
-  requestAnimationFrame(animateDice);
+            <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 1.2em; color: #2d3748; margin: 0 0 10px 0;">❓ Sign-in Not Working?</h3>
+                <p style="font-size: 1.05em; margin: 0;">Close your browser, then click "Sign in with GitHub" again in VS Code. Ensure you're logged into your GitHub account in your default browser. If issues continue, temporarily disable your antivirus or firewall.</p>
+            </div>
 
-  render();
-  refresh();
-  // ponytail: any server change triggers one re-read; fine for 6 people.
-  const stream = new EventSource(DB + '.json');
-  ['put', 'patch'].forEach(type => stream.addEventListener(type, refresh));
-</script>
-</body>
-</html>
+            <div>
+                <h3 style="font-size: 1.2em; color: #2d3748; margin: 0 0 10px 0;">❓ Performance Is Slow?</h3>
+                <p style="font-size: 1.05em; margin: 0;">Close other heavy programs. If you're using an older computer, try reducing the number of open editor tabs or restarting VS Code. The AI needs a bit of processing power to respond quickly.</p>
+            </div>
+       
